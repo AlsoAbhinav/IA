@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "./App.css";
 import catGif from './assets/cat.gif';
@@ -8,6 +8,7 @@ export default function App() {
   const [yesClicked, setYesClicked] = useState(false);
   const [yesSize, setYesSize] = useState(1);
   const [noClicked, setNoClicked] = useState(0);
+  const [overlapping, setOverlapping] = useState(false);
   const noMessages = [
     "No? 😢",
     "Are you sure?",
@@ -18,9 +19,20 @@ export default function App() {
     "If you say no, I will be really sad",
   ];
 
+  // Disable the No button after 5 seconds and start overlapping the Yes button
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setOverlapping(true);
+    }, 5000); // After 5 seconds, start overlapping
+
+    return () => clearTimeout(timer); // Cleanup on component unmount
+  }, []);
+
   const handleNoClick = () => {
-    setNoClicked(noClicked + 1);
-    setYesSize((prev) => prev * 1.1); // Grow the Yes button slightly
+    if (!overlapping) {
+      setNoClicked(noClicked + 1);
+      setYesSize((prev) => prev * 1.1); // Grow the Yes button slightly
+    }
   };
 
   return (
@@ -36,17 +48,18 @@ export default function App() {
               transition={{ repeat: Infinity, duration: 1.5 }}
             />
             <h1>Will you be my Valentine? 💖</h1>
-            <div className="buttons">
+            <div className={`buttons ${yesClicked ? 'overlap' : ''}`}>
               <motion.button
                 style={{ transform: `scale(${yesSize})` }}
                 onClick={() => setYesClicked(true)}
                 className="yes"
+                disabled={yesClicked}
               >
                 Yes 💘
               </motion.button>
               <motion.button
                 onClick={handleNoClick}
-                className="no"
+                className={`no ${overlapping ? 'hidden' : ''}`}
                 style={{
                   fontSize: noClicked >= 6 ? "2rem" : "1.2rem", // Adjust size after several clicks
                 }}
